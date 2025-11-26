@@ -1,9 +1,8 @@
-import numpy as np
-from collections import Counter, defaultdict
-import logging
 import math
-from typing import List, Dict, Tuple
 import random
+import logging
+from collections import Counter, defaultdict
+from typing import List, Dict, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +57,6 @@ class AdvancedKenoAnalyzer:
         scores = {}
         for number in range(1, 81):
             count = number_counts.get(number, 0)
-            # Higher weight for more frequent numbers
             scores[number] = count / total_draws if total_draws > 0 else 0.01
         
         return scores
@@ -72,7 +70,7 @@ class AdvancedKenoAnalyzer:
         total_draws = len(draws)
         
         for i, draw in enumerate(draws):
-            weight = 1.0 + (total_draws - i) * 0.1  # Recent draws get higher weight
+            weight = 1.0 + (total_draws - i) * 0.1
             for number in draw['numbers']:
                 scores[number] = scores.get(number, 0) + weight
         
@@ -85,7 +83,6 @@ class AdvancedKenoAnalyzer:
         if len(draws) < 10:
             return {}
         
-        # Recent draws (last 33%)
         recent_count = max(5, len(draws) // 3)
         recent_draws = draws[:recent_count]
         older_draws = draws[recent_count:]
@@ -101,13 +98,13 @@ class AdvancedKenoAnalyzer:
         scores = {}
         for number in range(1, 81):
             if number in recent_numbers and number not in older_numbers:
-                scores[number] = 1.0  # Hot number
+                scores[number] = 1.0
             elif number not in recent_numbers and number in older_numbers:
-                scores[number] = 0.3  # Cold number
+                scores[number] = 0.3
             elif number in recent_numbers:
-                scores[number] = 0.7  # Warm number
+                scores[number] = 0.7
             else:
-                scores[number] = 0.1  # Very cold number
+                scores[number] = 0.1
         
         return scores
     
@@ -123,7 +120,6 @@ class AdvancedKenoAnalyzer:
         for number in range(1, 81):
             score = 0.0
             
-            # Check if number fits detected patterns
             if number % 10 in patterns.get('endings', []):
                 score += 0.3
             
@@ -155,15 +151,15 @@ class AdvancedKenoAnalyzer:
             cold_streak = number_stats.get('cold_streak', 0)
             
             if hot_streak >= 3:
-                scores[number] = 0.8  # Strong hot streak
+                scores[number] = 0.8
             elif hot_streak >= 2:
-                scores[number] = 0.6  # Moderate hot streak
+                scores[number] = 0.6
             elif cold_streak >= 5:
-                scores[number] = 0.9  # Due for appearance
+                scores[number] = 0.9
             elif cold_streak >= 3:
-                scores[number] = 0.7  # Possibly due
+                scores[number] = 0.7
             else:
-                scores[number] = 0.5  # Neutral
+                scores[number] = 0.5
         
         return scores
     
@@ -244,7 +240,7 @@ class AdvancedKenoAnalyzer:
         
         # Confidence based on probability distribution
         top_probs = sorted(probabilities.values(), reverse=True)[:10]
-        prob_confidence = sum(top_probs) / 1.0  # Normalize
+        prob_confidence = sum(top_probs) / 1.0
         
         # Pattern consistency
         pattern_confidence = self._calculate_pattern_consistency(draws)
@@ -263,7 +259,6 @@ class AdvancedKenoAnalyzer:
         if len(draws) < 5:
             return 0.5
         
-        # Analyze pattern consistency in last 5 draws
         pattern_changes = 0
         total_comparisons = 0
         
@@ -271,7 +266,6 @@ class AdvancedKenoAnalyzer:
             current_patterns = self._analyze_draw_patterns(draws[i]['numbers'])
             next_patterns = self._analyze_draw_patterns(draws[i + 1]['numbers'])
             
-            # Compare patterns
             if set(current_patterns['endings']) != set(next_patterns['endings']):
                 pattern_changes += 1
             total_comparisons += 1

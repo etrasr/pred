@@ -3,11 +3,12 @@ services:
     name: keno-prediction-bot
     env: python
     plan: free
-    pythonVersion: "3.11.8"
-    buildCommand: pip install --upgrade pip setuptools wheel && pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: python predictor.py
     envVars:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: GITHUB_TOKEN
         sync: false

@@ -36,7 +36,7 @@ class KenoPredictionBot:
     def has_sufficient_data(self):
         """Check if we have enough data for reliable predictions"""
         total_draws = self.db.get_total_draws()
-        return total_draws >= 10  # Need at least 10 draws for good predictions
+        return total_draws >= 10
     
     async def send_prediction(self):
         """Generate and send prediction with clear data status"""
@@ -73,12 +73,11 @@ class KenoPredictionBot:
     
     def _generate_estimation(self):
         """Generate estimation when we don't have enough data"""
-        # Smart estimation based on common Keno patterns
         all_numbers = list(range(1, 81))
         
-        # Common patterns in Keno
-        hot_endings = [1, 3, 7, 9]  # Common number endings
-        balanced_mix = list(range(1, 41)) + list(range(41, 81))  # Low + High mix
+        # Smart estimation based on common patterns
+        hot_endings = [1, 3, 7, 9]
+        balanced_mix = list(range(1, 41)) + list(range(41, 81))
         
         # Generate 4 very high estimation numbers
         very_high = random.sample([n for n in all_numbers if n % 10 in hot_endings], 2)
@@ -91,13 +90,13 @@ class KenoPredictionBot:
         return {
             "very_high": very_high,
             "high": high,
-            "confidence": 0.15,  # Low confidence for estimations
+            "confidence": 0.15,
             "total_draws": self.db.get_total_draws(),
             "message": "ESTIMATION - Need more data"
         }
     
     def _format_estimation_message(self, predictions: dict, total_draws: int) -> str:
-        """Format estimation message (when we don't have enough data)"""
+        """Format estimation message"""
         very_high = predictions["very_high"]
         high = predictions["high"]
         
@@ -105,12 +104,10 @@ class KenoPredictionBot:
         message += "⚠️ *INSUFFICIENT DATA - THIS IS AN ESTIMATION* ⚠️\n\n"
         
         message += "🎯 *ESTIMATED VERY HIGH (4 Numbers)*\n"
-        message += f"`{sorted(very_high)}`\n"
-        message += "*(Based on common Keno patterns)*\n\n"
+        message += f"`{sorted(very_high)}`\n\n"
         
         message += "🔥 *ESTIMATED HIGH (10 Numbers)*\n"
-        message += f"`{sorted(high)}`\n"
-        message += "*(Random selection with pattern bias)*\n\n"
+        message += f"`{sorted(high)}`\n\n"
         
         message += "📊 *DATA STATUS*\n"
         message += f"• Current Draws: `{total_draws}/10`\n"
@@ -119,15 +116,14 @@ class KenoPredictionBot:
         
         message += "💡 *RECOMMENDATION*\n"
         message += "• Use these numbers **cautiously** - they're estimations\n"
-        message += "• Wait until we collect 10+ draws for reliable predictions\n"
-        message += "• Add more draw results to improve accuracy\n\n"
+        message += "• Wait until we collect 10+ draws for reliable predictions\n\n"
         
         message += f"⏰ *Generated*: `{datetime.now().strftime('%H:%M:%S')}`"
         
         return message
     
     def _format_prediction_message(self, predictions: dict) -> str:
-        """Format real prediction message (when we have enough data)"""
+        """Format real prediction message"""
         very_high = predictions["very_high"]
         high = predictions["high"]
         confidence = predictions["confidence"]
@@ -136,24 +132,20 @@ class KenoPredictionBot:
         message += "✅ *EXCELLENT PREDICTION - BASED ON COLLECTED DATA* ✅\n\n"
         
         message += "🎯 *VERY HIGH PROBABILITY (4 Numbers)*\n"
-        message += f"`{sorted(very_high)}`\n"
-        message += "*(AI Analysis of patterns & frequency)*\n\n"
+        message += f"`{sorted(very_high)}`\n\n"
         
         message += "🔥 *HIGH PROBABILITY (10 Numbers)*\n"
-        message += f"`{sorted(high)}`\n"
-        message += "*(Statistical probability analysis)*\n\n"
+        message += f"`{sorted(high)}`\n\n"
         
         message += "📊 *PREDICTION QUALITY*\n"
         message += f"• Confidence: `{confidence * 100:.1f}%`\n"
         message += f"• Status: `{predictions['message']}`\n"
-        message += f"• Total Draws: `{predictions['total_draws']}`\n"
-        message += f"• Recent Draws: `{predictions['recent_draws']}`\n\n"
+        message += f"• Total Draws: `{predictions['total_draws']}`\n\n"
         
         message += "💡 *GAMBLING STRATEGY*\n"
         message += "• **Play the 4 Very High numbers** - Core bets\n"
         message += "• **Mix with High probability set** - Increase coverage\n"
-        message += "• **This is based on real data** - Much more reliable\n"
-        message += "• Always gamble responsibly! 🎲\n\n"
+        message += "• **Based on real data analysis** - Much more reliable\n\n"
         
         message += f"⏰ *Generated*: `{datetime.now().strftime('%H:%M:%S')}`"
         
@@ -162,22 +154,18 @@ class KenoPredictionBot:
     async def send_data_status(self):
         """Send current data status"""
         total_draws = self.db.get_total_draws()
-        stats = self.db.get_number_stats()
         
         message = "📡 *DATA COLLECTION STATUS*\n\n"
         message += f"• Database Draws: `{total_draws}`\n"
-        message += f"• Numbers Tracked: `{len(stats)}`\n"
         message += f"• Prediction Quality: `{'EXCELLENT' if total_draws >= 10 else 'ESTIMATION'}`\n"
         message += f"• Minimum Required: `10 draws`\n"
         message += f"• Current Status: `{'✅ READY' if total_draws >= 10 else '⚠️ COLLECTING DATA'}`\n\n"
         
         if total_draws < 10:
             needed = 10 - total_draws
-            message += f"⚠️ *Need {needed} more draws for reliable predictions!*\n"
-            message += "Add draw results using the manual input method."
+            message += f"⚠️ *Need {needed} more draws for reliable predictions!*"
         else:
-            message += "✅ *Ready for excellent predictions!*\n"
-            message += "All predictions now based on collected data analysis."
+            message += "✅ *Ready for excellent predictions!*"
         
         message += f"\n⏰ *Last Update*: `{datetime.now().strftime('%H:%M:%S')}`"
         
@@ -198,54 +186,55 @@ class KenoPredictionBot:
         success = self.db.save_draw(numbers, f"manual_{int(time.time())}")
         if success:
             logger.info(f"✅ Manual draw added: {numbers}")
-            
-            # Check if we just reached sufficient data
-            if self.db.get_total_draws() == 10:
-                logger.info("🎉 SUFFICIENT DATA REACHED! Switching to real predictions.")
-        
         return success
 
 # Global bot instance
 prediction_bot = KenoPredictionBot()
 
-async def prediction_cycle():
-    """Main prediction cycle - synchronized with Keno timing"""
-    logger.info("🚀 Starting Prediction Cycle (90-second intervals)...")
-    
-    # Send startup message
-    try:
-        await prediction_bot.send_data_status()
-    except Exception as e:
-        logger.error(f"Startup message failed: {e}")
-    
-    prediction_count = 0
-    
-    while True:
+def run_async_loop():
+    """Run the async prediction cycle in a separate thread"""
+    async def prediction_cycle():
+        """Main prediction cycle"""
+        logger.info("🚀 Starting Prediction Cycle (90-second intervals)...")
+        
+        # Send startup message
         try:
-            # Generate and send prediction every 90 seconds (Keno cycle)
-            await prediction_bot.send_prediction()
-            prediction_count += 1
-            
-            # Send data status every 5 predictions
-            if prediction_count % 5 == 0:
-                await prediction_bot.send_data_status()
-            
-            # Log prediction type
-            if prediction_bot.has_sufficient_data():
-                logger.info(f"🎯 Excellent Prediction #{prediction_count} (Based on data)")
-            else:
-                logger.info(f"📊 Estimation #{prediction_count} (Collecting data)")
-            
-            # Wait 90 seconds (synchronized with Keno cycle)
-            await asyncio.sleep(90)
-            
+            await prediction_bot.send_data_status()
         except Exception as e:
-            logger.error(f"❌ Prediction cycle error: {e}")
-            await asyncio.sleep(30)  # Wait 30 seconds on error
+            logger.error(f"Startup message failed: {e}")
+        
+        prediction_count = 0
+        
+        while True:
+            try:
+                # Generate and send prediction every 90 seconds
+                await prediction_bot.send_prediction()
+                prediction_count += 1
+                
+                # Send data status every 5 predictions
+                if prediction_count % 5 == 0:
+                    await prediction_bot.send_data_status()
+                
+                # Log prediction type
+                if prediction_bot.has_sufficient_data():
+                    logger.info(f"🎯 Excellent Prediction #{prediction_count} (Based on data)")
+                else:
+                    logger.info(f"📊 Estimation #{prediction_count} (Collecting data)")
+                
+                # Wait 90 seconds (Keno cycle)
+                await asyncio.sleep(90)
+                
+            except Exception as e:
+                logger.error(f"❌ Prediction cycle error: {e}")
+                await asyncio.sleep(30)
+    
+    # Run the async function in current thread
+    asyncio.run(prediction_cycle())
 
 def start_prediction_bot():
-    """Start the prediction bot"""
-    asyncio.create_task(prediction_cycle())
+    """Start the prediction bot in a separate thread"""
+    thread = threading.Thread(target=run_async_loop, daemon=True)
+    thread.start()
     logger.info("✅ Prediction Bot started (90-second intervals)")
 
 # Flask Web Interface
@@ -304,17 +293,6 @@ def home():
                         <li>Based on collected data analysis</li>
                         <li>High confidence (60-90%)</li>
                         <li>Much more reliable for gambling</li>
-                    </ul>
-                </div>
-                
-                <div class="info prediction">
-                    <h3>📱 Telegram Output</h3>
-                    <p>You'll receive clear messages indicating:</p>
-                    <ul>
-                        <li>⚠️ <strong>ESTIMATION</strong> - When we need more data</li>
-                        <li>✅ <strong>EXCELLENT PREDICTION</strong> - When we have enough data</li>
-                        <li>🎯 <strong>4 Very High</strong> probability numbers</li>
-                        <li>🔥 <strong>10 High</strong> probability numbers</li>
                     </ul>
                 </div>
                 
